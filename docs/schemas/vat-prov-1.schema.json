@@ -1,0 +1,821 @@
+{
+  "$defs": {
+    "AdapterIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "title": "AdapterIdentity",
+      "type": "object"
+    },
+    "Artifact": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "fasta",
+            "genbank",
+            "pdb_id",
+            "prompt",
+            "msa",
+            "aa_sequence",
+            "nt_sequence",
+            "coordinates",
+            "qc_report",
+            "metric",
+            "log",
+            "transcript",
+            "reasoning",
+            "vat_node"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "bytes_len": {
+          "title": "Bytes Len",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "name",
+        "sha256",
+        "bytes_len"
+      ],
+      "title": "Artifact",
+      "type": "object"
+    },
+    "AssuranceTier": {
+      "description": "RAND's capture ladder, plus the tier this project claims.\n\nRAND enumerates three (``reference/rand-vat-spec-extract.md``, \"Capture configurations\").\n``serverless_hosted`` is the unenumerated fourth this build exists to test: the\ndesigner submits code but does not hold root on the host, so the attack that bounds\n``subprocess_wrapper`` (substituting outputs post-run, pre-finalization) is not\navailable to them. It is still below ``tee_coexec``; see README \"The claim being tested\".",
+      "enum": [
+        "tee_coexec",
+        "kernel_monitor",
+        "subprocess_wrapper",
+        "serverless_hosted"
+      ],
+      "title": "AssuranceTier",
+      "type": "string"
+    },
+    "ControlReference": {
+      "additionalProperties": false,
+      "properties": {
+        "producer_node_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Producer Node Id",
+          "type": "string"
+        },
+        "pointer": {
+          "default": "",
+          "title": "Pointer",
+          "type": "string"
+        },
+        "call_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Call Id"
+        }
+      },
+      "required": [
+        "producer_node_id"
+      ],
+      "title": "ControlReference",
+      "type": "object"
+    },
+    "DomainOutcome": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "succeeded",
+            "failed",
+            "rejected"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "code": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Code"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "title": "DomainOutcome",
+      "type": "object"
+    },
+    "EnvSnapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "assurance_tier": {
+          "$ref": "#/$defs/AssuranceTier"
+        },
+        "python": {
+          "title": "Python",
+          "type": "string"
+        },
+        "platform": {
+          "title": "Platform",
+          "type": "string"
+        },
+        "cuda": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cuda"
+        },
+        "gpu_model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gpu Model"
+        },
+        "sbom_sha256": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sbom Sha256"
+        },
+        "modal_call_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "modal.current_function_call_id(), platform-issued",
+          "title": "Modal Call Id"
+        },
+        "self_asserted": {
+          "$ref": "#/$defs/SelfAsserted"
+        }
+      },
+      "required": [
+        "assurance_tier",
+        "python",
+        "platform"
+      ],
+      "title": "EnvSnapshot",
+      "type": "object"
+    },
+    "FunctionIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "app_name": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "App Name",
+          "type": "string"
+        },
+        "function_name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Function Name",
+          "type": "string"
+        },
+        "capture_version": {
+          "const": "caller-observation/1",
+          "default": "caller-observation/1",
+          "title": "Capture Version",
+          "type": "string"
+        },
+        "codec_version": {
+          "const": "vat-json/1",
+          "default": "vat-json/1",
+          "title": "Codec Version",
+          "type": "string"
+        },
+        "module": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Module"
+        },
+        "qualname": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Qualname"
+        },
+        "source_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Sha256"
+        }
+      },
+      "required": [
+        "app_name",
+        "function_name"
+      ],
+      "title": "FunctionIdentity",
+      "type": "object"
+    },
+    "InputBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "destination": {
+          "title": "Destination",
+          "type": "string"
+        },
+        "producer_node_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Producer Node Id",
+          "type": "string"
+        },
+        "selector": {
+          "$ref": "#/$defs/OutputSelector"
+        },
+        "codec": {
+          "const": "vat-json/1",
+          "default": "vat-json/1",
+          "title": "Codec",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "bytes_len": {
+          "minimum": 0,
+          "title": "Bytes Len",
+          "type": "integer"
+        },
+        "artifact_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Artifact Sha256"
+        },
+        "artifact_bytes_len": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Artifact Bytes Len"
+        }
+      },
+      "required": [
+        "destination",
+        "producer_node_id",
+        "selector",
+        "sha256",
+        "bytes_len"
+      ],
+      "title": "InputBinding",
+      "type": "object"
+    },
+    "NodeStatus": {
+      "enum": [
+        "succeeded",
+        "function_error",
+        "execution_error",
+        "cancelled"
+      ],
+      "title": "NodeStatus",
+      "type": "string"
+    },
+    "OutputSelector": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "default": "return",
+          "enum": [
+            "return",
+            "artifact"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "pointer": {
+          "default": "",
+          "title": "Pointer",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "classification": {
+          "default": "output",
+          "enum": [
+            "output",
+            "intermediate"
+          ],
+          "title": "Classification",
+          "type": "string"
+        },
+        "encoding": {
+          "default": "identity",
+          "enum": [
+            "identity",
+            "utf-8"
+          ],
+          "title": "Encoding",
+          "type": "string"
+        }
+      },
+      "title": "OutputSelector",
+      "type": "object"
+    },
+    "RuntimeIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "modal_environment": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Modal Environment"
+        },
+        "modal_image_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Modal Image Id"
+        },
+        "modal_region": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Modal Region"
+        },
+        "modal_cloud_provider": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Modal Cloud Provider"
+        },
+        "modal_task_id": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Modal Task Id"
+        }
+      },
+      "title": "RuntimeIdentity",
+      "type": "object"
+    },
+    "SafeException": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Code",
+          "type": "string"
+        },
+        "module": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Module",
+          "type": "string"
+        },
+        "type": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Type",
+          "type": "string"
+        },
+        "message": {
+          "maxLength": 2048,
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "module",
+        "type",
+        "message"
+      ],
+      "title": "SafeException",
+      "type": "object"
+    },
+    "SelfAsserted": {
+      "additionalProperties": false,
+      "description": "Fields the platform does not sign.\n\nOn Modal these are read from the function's own configuration, so a designer who\nauthored that configuration asserts them. Segregating them means a verifier can see\nat a glance which fields carry independent weight and which do not. See\n``VISION.md``, \"Assurance Model and Limits\" (the attestation gap).",
+      "properties": {
+        "image_digest": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Image Digest"
+        },
+        "restrict_modal_access": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Restrict Modal Access"
+        },
+        "block_network": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Block Network"
+        },
+        "single_use_containers": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Single Use Containers"
+        }
+      },
+      "title": "SelfAsserted",
+      "type": "object"
+    },
+    "Timestamps": {
+      "additionalProperties": false,
+      "properties": {
+        "stage_start": {
+          "format": "date-time",
+          "title": "Stage Start",
+          "type": "string"
+        },
+        "stage_stop": {
+          "format": "date-time",
+          "title": "Stage Stop",
+          "type": "string"
+        },
+        "monotonic_ns": {
+          "title": "Monotonic Ns",
+          "type": "integer"
+        },
+        "clock_skew_ms": {
+          "default": 0.0,
+          "title": "Clock Skew Ms",
+          "type": "number"
+        }
+      },
+      "required": [
+        "stage_start",
+        "stage_stop",
+        "monotonic_ns"
+      ],
+      "title": "Timestamps",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "assurance_profile": {
+      "const": "basic-local-recorder/1",
+      "default": "basic-local-recorder/1",
+      "title": "Assurance Profile",
+      "type": "string"
+    },
+    "execution_id": {
+      "format": "uuid",
+      "title": "Execution Id",
+      "type": "string"
+    },
+    "attempt": {
+      "default": 1,
+      "minimum": 1,
+      "title": "Attempt",
+      "type": "integer"
+    },
+    "status": {
+      "$ref": "#/$defs/NodeStatus"
+    },
+    "function": {
+      "$ref": "#/$defs/FunctionIdentity"
+    },
+    "modal_call_id": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Modal Call Id"
+    },
+    "modal_input_id": {
+      "anyOf": [
+        {
+          "maxLength": 256,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Modal Input Id"
+    },
+    "dispatched_at": {
+      "format": "date-time",
+      "title": "Dispatched At",
+      "type": "string"
+    },
+    "recorded_at": {
+      "format": "date-time",
+      "title": "Recorded At",
+      "type": "string"
+    },
+    "timestamps": {
+      "$ref": "#/$defs/Timestamps"
+    },
+    "inputs": {
+      "items": {
+        "$ref": "#/$defs/Artifact"
+      },
+      "maxItems": 256,
+      "title": "Inputs",
+      "type": "array"
+    },
+    "intermediates": {
+      "items": {
+        "$ref": "#/$defs/Artifact"
+      },
+      "maxItems": 256,
+      "title": "Intermediates",
+      "type": "array"
+    },
+    "results": {
+      "items": {
+        "$ref": "#/$defs/Artifact"
+      },
+      "maxItems": 256,
+      "title": "Results",
+      "type": "array"
+    },
+    "exception": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SafeException"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "environment": {
+      "$ref": "#/$defs/EnvSnapshot"
+    },
+    "runtime": {
+      "$ref": "#/$defs/RuntimeIdentity"
+    },
+    "domain_outcome": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DomainOutcome"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "result_adapter": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AdapterIdentity"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "provenance_profile": {
+      "anyOf": [
+        {
+          "const": "vat-prov/1",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Provenance Profile"
+    },
+    "transport": {
+      "default": "modal",
+      "enum": [
+        "modal",
+        "local"
+      ],
+      "title": "Transport",
+      "type": "string"
+    },
+    "input_bindings": {
+      "items": {
+        "$ref": "#/$defs/InputBinding"
+      },
+      "maxItems": 256,
+      "title": "Input Bindings",
+      "type": "array"
+    },
+    "control_references": {
+      "items": {
+        "$ref": "#/$defs/ControlReference"
+      },
+      "maxItems": 256,
+      "title": "Control References",
+      "type": "array"
+    },
+    "timestamp_basis": {
+      "default": "local_observation",
+      "enum": [
+        "remote_observed",
+        "local_observation"
+      ],
+      "title": "Timestamp Basis",
+      "type": "string"
+    },
+    "uncaptured": {
+      "const": "filesystem, subprocess, logs, network, and external side effects are not captured",
+      "default": "filesystem, subprocess, logs, network, and external side effects are not captured",
+      "title": "Uncaptured",
+      "type": "string"
+    }
+  },
+  "required": [
+    "execution_id",
+    "status",
+    "function",
+    "dispatched_at",
+    "recorded_at",
+    "timestamps",
+    "environment"
+  ],
+  "title": "ExecutionStatement",
+  "type": "object"
+}

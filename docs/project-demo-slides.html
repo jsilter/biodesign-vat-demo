@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>biodesign-vat: Verifiable audit trails</title>
+<style>
+:root{color-scheme:light;--paper:#f5f1e9;--ink:#182e39;--muted:#51646a;--orange:#b84825;--green:#176653;--line:#c9d0ca}
+*{box-sizing:border-box}body{margin:0;background:#142630;color:var(--ink);font-family:Inter,"Segoe UI",Arial,sans-serif}button{font:inherit;cursor:pointer}button:focus-visible,a:focus-visible{outline:3px solid #ef9b62;outline-offset:4px}
+#stage{position:relative;width:1280px;height:720px;transform-origin:top left;background:var(--paper)}
+.slide{display:none;flex-direction:column;position:absolute;inset:0;padding:55px 70px 62px;background:var(--paper)}.slide.active{display:flex;flex-direction:column}.eyebrow{font-size:15px;letter-spacing:.18em;text-transform:uppercase;font-weight:750;color:var(--orange);margin:0 0 22px}h1{font-size:88px;letter-spacing:-.065em;line-height:1.01;margin:0 0 24px;max-width:950px}h2{font-size:57px;line-height:1.06;letter-spacing:-.045em;margin:0 0 24px}h3{font-size:25px;margin:0 0 15px}p{font-size:25px;line-height:1.4;margin:0 0 20px}.lead{font-size:29px;max-width:970px;color:var(--muted)}.accent{color:var(--orange)}.row{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin:12px 0 22px}.three{grid-template-columns:repeat(3,1fr)}.card{border:1px solid var(--line);padding:28px;background:#fffaf2;border-radius:6px}.card p{font-size:23px;margin:0}.card.dark{background:var(--ink);color:white;border-color:var(--ink)}.label{display:block;font-size:14px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:16px;color:var(--muted)}.dark .label{color:#c5d2d4}.big{display:block;font-size:80px;letter-spacing:-.05em;line-height:1.1;font-weight:700;margin-bottom:10px}.pill{display:inline-block;font-size:17px;padding:9px 15px;border:1px solid currentColor;border-radius:40px;font-weight:700}.pass{color:var(--green)}.warn{color:var(--orange)}.callout{border-left:5px solid var(--orange);padding:12px 20px;font-size:27px;line-height:1.35;margin-top:12px}.foot{margin-top:auto;font-size:15px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}.brand{position:absolute;bottom:24px;left:70px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}.page{position:absolute;bottom:22px;right:70px;font-size:14px;color:var(--muted)}
+.checks{list-style:none;padding:0;margin:5px 0 14px;display:grid;gap:8px}.checks li{display:flex;align-items:center;font-size:24px;border-bottom:1px solid var(--line);padding:11px 0;gap:22px}.checks b{font-size:16px;width:28px;color:var(--orange)}.checks span{margin-left:auto;font-size:16px;color:var(--green);font-weight:700}.record{font:24px/1.65 ui-monospace,monospace;white-space:normal;overflow-wrap:anywhere}.strike{text-decoration:line-through;color:var(--muted)}.leaves{display:grid;grid-template-columns:repeat(10,1fr);gap:12px;margin:30px 0}.leaf{border:2px dashed #98a6a5;height:90px;display:grid;place-items:center;font-size:23px;color:var(--muted)}.leaf.shown{border:2px solid var(--green);background:#d4e9df;color:var(--green);font-weight:700}.flow{display:flex;align-items:stretch;gap:12px;margin:22px 0}.flow>div{flex:1;background:#fffaf2;border:1px solid var(--line);padding:23px 18px;font-size:24px;font-weight:650}.flow small{display:block;font-size:17px;font-weight:400;margin-top:12px;line-height:1.4}.flow>span{align-self:center;color:var(--orange);font-size:28px}.compact{font-size:20px;color:var(--muted)}.result{font:20px/1.6 ui-monospace,monospace;background:var(--ink);color:#e9f2ee;padding:24px;border-radius:6px;margin:10px 0 18px}.notes{display:none}
+#controls{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:10px;align-items:center;color:#e6eeee;font-size:14px;white-space:nowrap}#controls button{border:1px solid #657b83;border-radius:5px;background:#243d49;color:white;padding:8px 13px}#controls button:disabled{opacity:.35;cursor:default}#notes-panel{position:fixed;inset:auto 5% 65px;background:white;color:var(--ink);border:3px solid var(--orange);padding:25px 30px;max-height:45vh;overflow:auto;font-size:20px;line-height:1.55;z-index:3}#notes-panel[hidden]{display:none}
+@page{size:13.333333in 7.5in;margin:0}@media print{html,body{background:var(--paper);width:1280px;height:auto!important;overflow:visible!important;margin:0!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}#stage{transform:none!important;width:1280px;height:auto;margin:0!important}.slide,.slide.active{position:relative;display:flex;width:1280px;height:720px;break-after:page;break-inside:avoid}.slide:last-child{break-after:auto}#controls,#notes-panel{display:none!important}}
+.demo-row{display:grid;grid-template-columns:0.75fr 1.25fr;gap:34px;align-items:center;min-height:0;margin:0 0 16px}.capture{display:block;max-width:100%;max-height:370px;object-fit:contain;justify-self:center;border:1px solid var(--line);background:white}.demo-row .lead{font-size:27px;margin-top:22px}.privacy-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}.privacy-grid p{font-size:22px}.disclosure{border-collapse:collapse;font-size:21px;line-height:1.3;margin:4px 0 15px}.disclosure th,.disclosure td{border-bottom:1px solid var(--line);padding:13px 15px;text-align:left}.disclosure th{color:var(--orange)}.disclosure td:first-child{width:28%;font-weight:650}
+.teaching{display:block;width:100%;height:290px;flex-shrink:0;margin:0 0 15px}.foot a{color:inherit;text-underline-offset:3px}
+.demo-row{grid-template-columns:0.65fr 1.35fr;flex:1;min-height:370px;align-items:start}.capture{max-height:370px}
+#stage.detailed .slide:has(.capture) h2{font-size:44px;margin-bottom:14px}
+#stage.detailed .demo-row{min-height:410px}
+#stage.detailed .capture{max-height:410px}
+</style>
+</head>
+<body>
+<main id="stage" aria-label="Presentation">
+<section class="slide active" aria-labelledby="s1">
+<p class="eyebrow">biodesign-vat / Verifiable audit trails</p>
+<h1 id="s1">Verifiable records for<br><span class="accent">biological design</span></h1>
+<p class="lead">Submit a biological sequence with a signed record of its design objectives, inputs and outputs.</p>
+<div class="row"><div class="card"><span class="label">For the organization</span><h3>Control disclosure of design records.</h3><p>Share records with authorized reviewers.</p></div><div class="card dark"><span class="label">For the reviewer</span><h3>Verify the submitted evidence.</h3><p>Check record integrity, recorded objectives and missing evidence.</p></div></div>
+<p class="foot">The prototype demonstrates a laptop-local ledger. Independent public operation and biological safety screening are not provided.</p>
+<aside class="notes">A synthesis provider receives a proposed biological sequence and must decide whether to accept the order. A verifiable audit trail, or VAT, supplies a signed record of the design objectives, computational inputs and outputs. The organization shares this record with authorized reviewers while a public ledger records cryptographic commitments and limited metadata. The prototype demonstrates this process locally; independent public operation remains a proposed deployment.</aside>
+</section>
+<section class="slide" aria-labelledby="s2">
+<p class="eyebrow">Submission and review</p><h2 id="s2">Submit the sequence<br>with its design record</h2>
+<div class="flow"><div>Organization<small>Records intent, work, and outputs</small></div><span>→</span><div>Authorized reviewer<small>Receives the sequence and audit evidence</small></div><span>→</span><div>Review decision<small>Checks the record; evaluates the content</small></div></div>
+<div class="callout">A portable bundle supplies the review evidence.<br>A public entry records a commitment to that bundle.</div>
+<p class="foot">Proposed deployment: independent operators and controlled review. The prototype runs locally.</p>
+<aside class="notes">The organization submits its sequence with a bundle containing design records, signatures and verification proofs. The reviewer checks the submitted sequence against the recorded output and examines the objectives used during design. A separate public entry commits to the submitted evidence. The reviewer still needs an agreed policy for interpreting that evidence and deciding whether the submission is acceptable.</aside>
+</section>
+<section class="slide" aria-labelledby="s3">
+<p class="eyebrow">Privacy boundary / Different audiences, different disclosures</p><h2 id="s3">Separate public metadata<br>from private design records</h2>
+<div class="row three"><div class="card"><span class="label">Organization</span><h3>Underlying work</h3><p>Sequences, prompts, methods, structures, results, and private keys.</p></div><div class="card"><span class="label">Authorized review</span><h3>Evidence for scrutiny</h3><p>Disclosed records and artifact bytes. The verifier reports missing committed records.</p></div><div class="card dark"><span class="label">Public ledger</span><h3>Digests and metadata</h3><p>Cryptographic digests, identifiers, counts, times, and signed checkpoints.</p></div></div>
+<p class="foot">The validating service receives full records. External model and tool providers receive submitted inputs.</p>
+<aside class="notes">The organization retains its design records and signing keys. External model and tool providers receive whichever inputs the organization sends them. The current validating service receives the complete record chain and supplied artifact bytes; reviewers receive the evidence released for review. Public readers see digests, identifiers, counts and timestamps. These disclosures require separate decisions about provider access, confidential review and public metadata.</aside>
+</section>
+<section class="slide" aria-labelledby="s4">
+<p class="eyebrow">Review experience / Clean example</p><h2 id="s4">Five verification checks pass</h2>
+<div class="demo-row"><div><span class="pill pass">OK · exit 0</span><p class="lead">The submitted sequence matches a recorded output, and all committed records are disclosed.</p><p class="compact">Actual prototype screenshot →</p></div><img class="capture" src="assets/presentation/clean-verification.png" alt="Actual clean example: hash chain, role-bound signatures, inclusion, exact output binding and completeness all pass."></div>
+<p class="foot">Synthetic example; actual verifier results. Passing integrity does not certify safety or correct science.</p>
+<aside class="notes">This synthetic example passes all five configured checks. The record links and signatures validate, the inclusion proofs verify, the submitted sequence matches a recorded output, and every committed record is disclosed. The screenshot shows actual verifier results from the prototype. These checks establish the integrity of the supplied evidence; scientific interpretation and biological safety require separate assessment.</aside>
+</section>
+<section class="slide" aria-labelledby="s5">
+<p class="eyebrow">Review experience / Changed evidence</p><h2 id="s5">Changing a signed record<br>causes verification to fail</h2>
+<div class="demo-row"><div><span class="pill warn">TAMPERED · exit 2</span><p class="compact">Record 1, changed after sealing:</p><p class="strike">therapeutic lead</p><p>biochemistry class</p><p class="compact">Original signatures retained.</p></div><img class="capture" src="assets/presentation/tampered-verification.png" alt="Actual tampered example: hash chain fails; subsequent checks are not run."></div>
+<p class="foot">Actual prototype screenshot of a synthetic example. The rejection concerns changed evidence, not the wording’s acceptability.</p>
+<aside class="notes">In this example, the purpose in record 1 was changed from therapeutic lead to biochemistry class after signing. The original signatures and commitments were retained. The verifier detects the changed record through the next record’s hash link and stops before the later checks. This result concerns alteration of the signed evidence and makes no judgment about either stated purpose.</aside>
+</section>
+<section class="slide" aria-labelledby="s6">
+<p class="eyebrow">Review experience / Content still needs judgment</p><h2 id="s6">Review objectives against<br>the stated purpose</h2>
+<div class="row"><div class="card"><span class="label">Stated purpose / Example text</span><h3>“therapeutic lead”</h3></div><div class="card"><span class="label">Recorded objective names / Example text</span><div class="record">mhc_ii_presentation<br>serum_antibody_recognition</div><p class="compact">Both recorded with direction: min.</p></div></div>
+<p><span class="pill pass">OK · exit 0</span> &nbsp; Recorded objectives require scientific and policy review.</p>
+<p class="foot">Synthetic doctored example. Objective names prompt contextual review; they do not establish malicious intent.</p>
+<aside class="notes">This example passes integrity verification while recording objectives that require interpretation alongside the stated therapeutic purpose. The reviewer can inspect those objectives and request their scientific rationale. Minimizing immune recognition can have legitimate therapeutic applications, so the objective names alone do not establish malicious intent. Any decision about acceptability requires the design context and an applicable review policy.</aside>
+</section>
+<section class="slide" aria-labelledby="s7">
+<p class="eyebrow">Review experience / Incomplete disclosure</p><h2 id="s7">Nine committed records are missing</h2><p class="lead">The bundle discloses record 5 from a session containing ten committed records.</p>
+<div class="leaves" aria-label="Ten committed records; only leaf five is revealed"><div class="leaf">0</div><div class="leaf">1</div><div class="leaf">2</div><div class="leaf">3</div><div class="leaf">4</div><div class="leaf shown">5</div><div class="leaf">6</div><div class="leaf">7</div><div class="leaf">8</div><div class="leaf">9</div></div>
+<div class="row"><div class="card"><h3>Membership passes.</h3><p>The proof places record 5 in the committed session.</p></div><div class="card"><h3 class="warn">INCOMPLETE · exit 6</h3><p>The committed session is not fully disclosed.</p></div></div>
+<p class="foot">The ten leaves count records. Complete disclosure is required in the reviewer’s bundle, not on the public ledger.</p>
+<aside class="notes">The signed session contains ten records, but the bundle discloses only record 5. Its inclusion proof verifies successfully. The completeness check reports nine missing records and returns INCOMPLETE. To pass that check, the submitter must disclose all ten records to the reviewer. The records can remain private from the public ledger. Computations omitted before recording are outside this check’s scope.</aside>
+</section>
+<section class="slide" aria-labelledby="s8">
+<p class="eyebrow">Private review / Required records and optional artifacts</p><h2 id="s8">Specify what the reviewer receives</h2>
+<div class="row"><div class="card"><h3>Complete records</h3><p>To pass session completeness, the reviewer needs all committed records.</p></div><div class="card"><h3>Available artifacts</h3><p>Artifact bytes may be withheld while their digests remain in the records.</p></div></div>
+<div class="callout">The reviewer must identify which required records or artifact bytes are missing.</div>
+<p class="foot">Record fields cannot be silently redacted after signing. No zero-knowledge review or automatic confidential redaction is implemented.</p>
+<aside class="notes">A complete-session check requires all committed records in the reviewer’s bundle. Artifact bytes, such as a transcript or structure file, can be omitted while their digests remain recorded. The reviewer then lacks those bytes for inspection and must decide whether to request them. Editing a signed record invalidates its commitment. The prototype provides no mechanism for confidential field-level redaction that preserves the original signatures.</aside>
+</section>
+<section class="slide" aria-labelledby="s9">
+<p class="eyebrow">Public ledger / Disclosed fields</p><h2 id="s9">Public entries contain<br>digests and metadata</h2>
+<div class="row"><div class="card"><span class="label">Public in the current export format</span><h3>Digests + metadata</h3><p>Receipt and attestation digests; session root, ID and record count; log position and time; signed checkpoint.</p></div><div class="card dark"><span class="label">Absent from public entries</span><h3>The underlying science</h3><p>No sequence, prompt, objective, transcript, structure, raw result, or private key bytes.</p></div></div>
+<p class="foot">Vision: globally readable, independently operated ledger. Current demonstration: local. Hashes are not encryption or anonymity.</p>
+<aside class="notes">Each public entry contains receipt and attestation digests, the session identifier and record count, the session root, and its position and acceptance time in the log. Signed checkpoints allow observers to compare successive versions of the log. Sequences, prompts, objectives and artifact bytes are excluded from the public export. Identifiers, timing and deterministic digests can still support correlation. Independent operators and observers would be required for public deployment.</aside>
+</section>
+<section class="slide" aria-labelledby="s10">
+<p class="eyebrow">Recorded study / Twelve protein designs</p><h2 id="s10">A recorded study of 12 protein designs</h2>
+<div class="row three"><div class="card"><span class="big">12</span><h3>Published designs</h3><p>A fixed panel of 12 BenchBB protein designs.</p></div><div class="card"><span class="big">24</span><h3>Model calls</h3><p>12 structure predictions and 12 sequence evaluations.</p></div><div class="card dark"><span class="big">371</span><h3>Committed records</h3><p>Including recorded computation relationships.</p></div></div>
+<div class="callout">The tested scores did not convincingly separate binders from non-binders on this fixed panel.</div>
+<p class="foot">Recorded study with signed evidence. This study does not demonstrate independent public anchoring.</p>
+<aside class="notes">The recorded BenchBB study evaluated twelve published protein designs using twelve structure predictions and twelve sequence-scoring calls. The resulting session contains 371 records, including computation relationships. The tested scores did not convincingly distinguish binders from non-binders on this fixed panel. The signed record retains the inputs, outputs and analysis needed to examine that result; it does not establish independent public publication of the study.</aside>
+</section>
+<section class="slide" aria-labelledby="s11">
+<p class="eyebrow">Deployment requirements</p><h2 id="s11">Independent deployment<br>requires additional controls</h2>
+<div class="row"><div class="card"><span class="label">Demonstrated today</span><h3>Portable, checkable evidence</h3><p>Research and scientific records, verification, explicit provenance, and local transparency proofs.</p></div><div class="card"><span class="label">Product direction</span><h3>Independent shared infrastructure</h3><p>Public observation, confidential validation and review, external operators, and stronger capture.</p></div></div>
+<p class="foot">Global operation and organizational access controls are not built. Biological safety and off-ledger completeness are not established.</p>
+<aside class="notes">The prototype records research and scientific computations, verifies portable bundles, and demonstrates local transparency proofs. Deployment across organizations would require independent operators, protected capture, confidential transport, access controls and retention agreements. Public observers would also need to retain and compare checkpoints. These arrangements have not been implemented, and the local signatures do not establish biological safety or the absence of unrecorded work.</aside>
+</section>
+<section class="slide" aria-labelledby="s12">
+<p class="eyebrow">Proposed pilot / Synthesis review</p><h1 id="s12">Evaluate VATs in<br><span class="accent">synthesis review</span></h1>
+<p class="lead">Agree on required evidence, confidential handling and review procedures with participating synthesis providers.</p>
+<p class="foot">Proposed next step: a voluntary pilot measuring review outcomes and researcher burden.</p>
+<aside class="notes">A voluntary pilot could test whether design records help synthesis providers assess submissions. Participating organizations and reviewers would first agree on required evidence, confidential handling and escalation procedures. The evaluation should measure review time, the accuracy of identified discrepancies and the burden on researchers. Those results would inform whether and how to introduce VATs into routine order review.</aside>
+</section>
+<section class="slide detail" aria-labelledby="s13">
+<p class="eyebrow">Technical details / Recorded information</p><h2 id="s13">Record design inputs, decisions and results</h2>
+<div class="row three"><div class="card"><h3>Context</h3><p>User/session<br>Timestamps<br>Environment</p></div><div class="card"><h3>Computation</h3><p>Inputs<br>Parameters/objectives<br>External data</p></div><div class="card"><h3>Evidence</h3><p>Intermediates<br>Results<br>Hash link</p></div></div>
+<p class="lead">Artifact reference: SHA-256 digest and byte length.<br>Artifact content: the original file or data bytes.</p>
+<p class="foot">A content fingerprint identifies committed bytes; it does not make those bytes available for inspection.</p>
+<aside class="notes">RAND groups the recorded information into nine categories covering session context, timing, inputs, objectives, external data, environment, intermediate outputs, final results and hash links. An artifact reference records a digest and byte length; the artifact itself contains the original bytes. A reviewer who receives only a transcript digest cannot read the transcript. Environment fields also require scrutiny because a recorded claim about hardware is not automatically authenticated by the hardware provider.</aside>
+</section>
+<section class="slide detail" aria-labelledby="s14">
+<p class="eyebrow">Technical details / Canonical encoding</p><h2 id="s14">Use a standard byte encoding for each record</h2>
+<div class="flow"><div>Typed record<small>Validated field values</small></div><span>→</span><div>RFC 8785<small>Canonical JSON bytes</small></div><span>→</span><div>SHA256<small>Content commitment</small></div></div>
+<div class="result">record[n].link.sha_prev = SHA256(canonical(record[n - 1]))<br>genesis.sha_prev = "00" * 32</div>
+<div class="callout">Each record identifies its predecessor by digest.<br>Sealing signs a commitment to the recorded history.</div>
+<p class="foot">Standardized JSON encoding gives the same record the same fingerprint. Hidden links cannot be inspected.</p>
+<aside class="notes">Equivalent JSON values can be written with different whitespace or key ordering. Canonicalization specifies one byte representation for hashing. Each record includes the digest of its predecessor, allowing the verifier to detect a changed record when checking the next revealed link. If intermediate records are withheld, those links cannot be inspected. Sealing signs a commitment to the recorded history, against which subsequent submissions are checked.</aside>
+</section>
+<section class="slide detail" aria-labelledby="s15">
+<p class="eyebrow">Technical details / Membership and completeness</p><h2 id="s15">Verify record membership and disclosure</h2>
+<div class="result">leaf = SHA256(0x00 || canonical_record_bytes)<br>parent = SHA256(0x01 || left_hash || right_hash)</div>
+<div class="row"><div class="card"><h3>Inclusion proof</h3><p>Combine a leaf with sibling hashes to recover the signed root.</p></div><div class="card"><h3>Completeness check</h3><p>Compare unique revealed positions with the signed tree size.</p></div></div>
+<p class="foot">Membership verification checks the record’s position, proof shape and signed tree size as well as the root hash.</p>
+<aside class="notes">The Merkle tree uses separate hash prefixes for records and internal nodes. To verify membership, the recipient combines a record’s hash with the sibling hashes in its proof and compares the result with the signed root. The verifier must also check the record’s position, the proof’s shape and the signed tree size. Disclosure completeness is checked separately by comparing the revealed record positions with the number committed by the signed tree.</aside>
+</section>
+<section class="slide detail" aria-labelledby="s16">
+<p class="eyebrow">Technical details / Signatures and trust</p><h2 id="s16">The verifier selects trusted signing roles</h2>
+<div class="row"><div class="card"><h3>Who signs what?</h3><p>Designer: session intent<br>Recorder: head + attestation<br>Notary: simulated receipt<br>Log: checkpoint</p></div><div class="card"><h3>Who chooses trust?</h3><p>The verifier selects public keys for each role independently of the submitter’s claimed identity.</p></div></div>
+<div class="callout">Check that signed objects agree on session identity, root and record count.</div>
+<p class="foot">Trusted roles are chosen by the verifier. Four keys held by one operator are not four independent authorities.</p>
+<aside class="notes">The verifier chooses which public keys to trust for each role. The designer signs the session intent, the recorder signs the session commitment, the notary signs its receipt, and the log signs checkpoints. Session identity, root and size must agree across these objects so that valid statements from different sessions cannot be combined. In the prototype, one operator holds all four role keys; the signatures therefore provide no independent verification of the designer’s real-world identity.</aside>
+</section>
+<section class="slide detail" aria-labelledby="s17">
+<p class="eyebrow">Technical details / Portable verification</p><h2 id="s17">Verify the bundle with verifier-selected trust</h2>
+<div class="row"><div class="card"><h3>vat-bundle/1 ZIP</h3><div class="record">manifest.json<br>blobs/&lt;sha256&gt;</div><p class="compact">Records, signatures, proofs, artifact bytes.</p></div><div class="card"><h3>Verifier-owned inputs</h3><p>Public role trust<br>Submitted sequence<br>Required-transparency policy<br>Optional saved checkpoint</p></div></div>
+<div class="result">vat verify: OK=0 · TAMPERED=2 · BAD_SIGNATURE=3<br>NOT_INCLUDED=4 · SEQUENCE_MISMATCH=5 · INCOMPLETE=6</div>
+<p class="foot">The recipient chooses trusted signers and review policy; a submission cannot declare itself trustworthy.</p>
+<aside class="notes">A portable bundle contains records, signatures, proofs and any supplied artifact bytes. The verifier obtains trusted public keys and policy independently of the submitter’s claims, then compares the submitted sequence with a recorded sequence output. It also checks supplied artifact digests and lengths, rejects unsafe archive members and reports distinct failure outcomes. A sequence appearing in a transcript does not satisfy the output-matching check.</aside>
+</section>
+<section class="slide detail" aria-labelledby="s18">
+<p class="eyebrow">Technical details / Computation dependencies</p><h2 id="s18">Record which output each computation uses</h2>
+<div class="result">first = double.with_recorder(recorder).call(3)<br>second = double.with_recorder(recorder).call(first.ref())<br># second.value == 12; the producer reference is recorded</div>
+<div class="row"><div class="card"><h3>.ref() / .artifact_ref()</h3><p>Bind a consumer input to an explicit producer output.</p></div><div class="card"><h3>.value</h3><p>Passes the value without that lineage relationship.</p></div></div>
+<p class="foot">Illustrative programming example. Checking dependencies is separate from checking a complete audit bundle.</p>
+<aside class="notes">An explicit input reference identifies a particular producer and output selector. The recorder verifies that reference before passing the resolved value to the consuming function. Two executions can produce identical values, so equality alone cannot identify which execution supplied an input. Missing producer evidence can leave a dependency unresolved even when the consumer’s signature is valid. The example illustrates this distinction using two arithmetic calls.</aside>
+</section>
+<section class="slide detail" aria-labelledby="s19">
+<p class="eyebrow">Technical details / Recovery</p><h2 id="s19">Recover interrupted work<br>without submitting it again</h2>
+<div class="flow"><div>Intent<small>Persist before dispatch</small></div><span>→</span><div>Acceptance<small>Persist call identity</small></div><span>→</span><div>Observation<small>Persist before signing</small></div></div>
+<div class="row"><div class="card"><h3>Execution recovery</h3><p>A polling timeout can mean “still unknown.” Reconcile the accepted call.</p></div><div class="card"><h3>Publication recovery</h3><p>Prepared bytes → log append → saved evidence → published files.</p></div></div>
+<p class="foot">Recover the evidence from the original execution; do not rerun the science to repair its history.</p>
+<aside class="notes">Execution recovery preserves dispatch intent, the accepted call identifier and the observed outcome. If a polling request expires, the remote computation may still be running; another submission could duplicate the work. Publication recovery uses previously prepared signed bytes. When an append succeeds but its response is lost, an exact retry returns the existing entry. These rules preserve the original execution and prevent evidence repair from initiating another scientific calculation.</aside>
+</section>
+<section class="slide detail" aria-labelledby="s20">
+<p class="eyebrow">Technical details / Session and public log trees</p><h2 id="s20">Separate record proofs from publication proofs</h2>
+<div class="row"><div class="card"><h3>Private session tree</h3><p>Leaves: canonical records<br>Commitment: recorder-signed head<br>Question: does this record belong?</p></div><div class="card"><h3>Public ledger tree</h3><p>Leaves: notarized commitments<br>Commitment: public signed checkpoint<br>Question: was this submission publicly committed?</p></div></div>
+<div class="callout">Public consistency proofs let anyone check that later history extends the history they already observed.</div>
+<p class="foot">Record membership and public publication answer different questions and use separate commitments.</p>
+<aside class="notes">The session tree commits to individual design records. The public log tree commits to notarized submissions through receipt and attestation digests, together with the session root and size. A session proof establishes record membership; a log proof establishes submission membership. A consistency proof checks whether a later log extends an earlier observed prefix. Public operation would require independent observers to retain those checkpoints and compare their views.</aside>
+</section>
+<section class="slide detail" aria-labelledby="s23">
+<p class="eyebrow">Privacy deep dive / The exact public surface</p><h2 id="s23">Public identifiers and times permit correlation</h2>
+<div class="privacy-grid"><div class="card"><h3>Entry fields</h3><div class="record">entry_format · log_id<br>leaf_index · accepted_at<br>notary_receipt_digest<br>attestation_digest<br>session_uuid · session_root<br>session_tree_size</div></div><div class="card"><h3>Checkpoint fields</h3><div class="record">checkpoint_format · log_id<br>tree_size · root_hash<br>timestamp · keyid<br>simulated<br>independent_timestamp<br>signature</div></div></div>
+<p class="foot">The prototype defines these public fields. RAND does not prescribe this schema. Proofs expose hashes and positions.</p>
+<aside class="notes">These fields describe the prototype’s public export, rather than a format prescribed by RAND. The receipt digest covers the signed receipt, and the attestation digest covers its decoded payload. The session identifier, record count, acceptance time, log position and checkpoint identity remain public. Identifiers and timing can link submissions to other observations. Deterministic digests also allow comparison with known candidate content, so the format does not guarantee anonymity.</aside>
+</section>
+<section class="slide detail" aria-labelledby="s25">
+<p class="eyebrow">Privacy deep dive / Recipient-by-recipient disclosure</p><h2 id="s25">Data disclosed to each recipient</h2>
+<table class="disclosure"><thead><tr><th>Recipient</th><th>Data available to that recipient</th></tr></thead><tbody>
+<tr><td>Organization / recorder</td><td>Recorded requests, outcomes, artifact bytes, and local signing keys.</td></tr>
+<tr><td>External tool / model provider</td><td>Inputs sent to that service: prompts, queries, sequences or structures as applicable. VAT does not prevent provider observation.</td></tr>
+<tr><td>Current notary + log admission</td><td>Submitted bundle containing the full record chain, signatures, and any supplied artifact bytes.</td></tr>
+<tr><td>Authorized reviewer</td><td>Disclosed records and supplied artifacts, trust and proofs. All committed records are required to pass completeness.</td></tr>
+<tr><td>Public ledger reader / monitor</td><td>Entry and checkpoint fields on the preceding slide, plus proof hashes/positions. No underlying records or artifact bytes.</td></tr>
+</tbody></table>
+<p class="foot">Deployment requires separate controls for organizational access, transport confidentiality and provider retention.</p>
+<aside class="notes">The organization retains recorded requests, outcomes and signing keys. External providers receive the inputs sent to their services. The current validating service receives the complete record chain and any supplied artifact bytes. Reviewers see the evidence released to them and need every committed record to pass completeness. Public readers receive entry metadata, checkpoints and proofs. These are data-format boundaries; transport protection, organizational permissions and provider retention require separate arrangements.</aside>
+</section>
+<section class="slide detail" aria-labelledby="s24">
+<p class="eyebrow">Privacy deep dive / Public export versus service access</p><h2 id="s24">Validation services receive<br>the full record chain</h2>
+<div class="row"><div class="card"><h3>Current admission</h3><p>The notary and log append path receive a bundle and replay the full record chain.<br><br>Public export omits that chain.</p></div><div class="card"><h3>Confidential review</h3><p>All records for a complete session check.<br><br>Optional artifact bytes; explicit disclosure gaps. Never silently redact signed fields.</p></div></div>
+<p class="foot">Privacy from public readers does not imply privacy from the service validating the full record.</p>
+<aside class="notes">The current notary and log admission methods replay a full record chain before admitting a submission. An organization using those methods through an external service would disclose the chain and supplied artifacts to that service. The public export omits those contents. Deployment therefore requires explicit transport, access and retention rules for validation. Separating confidential validation from a commitment-only public submission endpoint would require additional design and implementation.</aside>
+</section>
+<section class="slide detail" aria-labelledby="s21">
+<p class="eyebrow">Scientific interpretation / Reference study</p><h2 id="s21">The reference scores did not establish binding</h2>
+<div class="row"><div class="card"><span class="label">Fixed BenchBB panel / Interface confidence (ipTM)</span><span class="big">0.407</span><h3>Area under ROC curve · p = 0.727</h3><p>3 released binders; 9 selected non-binders.</p></div><div class="card"><h3>Interpret each metric by its purpose</h3><p>ESMC scores sequence plausibility, not binding affinity.<br><br>ESMFold2 includes ESMC; the stages share a model component.</p></div></div>
+<p class="foot">Recorded 12-design reference study: 3 binders and 9 selected non-binders. Descriptive, not confirmatory statistics.</p>
+<aside class="notes">The fixed panel contained three released binders and nine selected non-binders. Fresh ipTM scores, which describe predicted interface confidence, produced an area under the receiver operating characteristic curve of approximately 0.407. The exact two-sided permutation p-value was approximately 0.727, based on all 220 assignments of three binder labels to twelve designs. These results do not establish discrimination on this selected panel. ESMC sequence plausibility also does not measure binding affinity, and ESMFold2 includes ESMC, so the two stages are not independent model votes.</aside>
+</section>
+<section class="slide detail" aria-labelledby="s22">
+<p class="eyebrow">Discussion / Put the evidence to work</p><h2 id="s22">Identify what further review requires</h2>
+<div class="row three"><div class="card"><h3>All checks pass</h3><p>Which claims are established?<br>What still needs scientific or policy review?</p></div><div class="card"><h3>One of ten records</h3><p>The record is authentic.<br>What evidence is missing from the submission?</p></div><div class="card"><h3>A public commitment</h3><p>What can an outside observer learn?<br>Who must see the private contents?</p></div></div>
+<div class="callout">State which evidence checks passed and which questions require further assessment.</div>
+<p class="foot">Discussion exercise: distinguish evidence integrity, disclosure completeness and the decision to accept a submission.</p>
+<aside class="notes">For each submission, identify the evidence that has been verified and the questions that remain. Passing integrity checks still leaves scientific and policy judgments to the reviewer. Disclosing one of ten committed records leaves nine records unavailable. Public commitments expose digests and metadata, while validation services and authorized reviewers may receive the full design record. Consider which additional records, artifact bytes or trust arrangements would be necessary before accepting each submission.</aside>
+</section>
+<section class="slide detail" aria-labelledby="rand-gap">
+<p class="eyebrow">RAND VAT / Protocol and demonstration</p><h2 id="rand-gap">Sequence screening lacks design history</h2>
+<div class="row"><div class="card"><h3>The synthesis provider’s problem</h3><p>A sequence arrives with a stated purpose. Its objectives, inputs and design history are missing.</p></div><div class="card dark"><h3>RAND’s proposal</h3><p>Submit a verifiable audit trail alongside the sequence, across tools and organizations.</p></div></div><div class="callout">Use the recorded design process as additional evidence in sequence screening and order review.</div>
+<p class="foot">Source: <a href="https://www.rand.org/pubs/perspectives/PEA4613-1.html">Berke et al., RAND PE-A4613-1 (June 2026)</a>, chapters 2–4. Proposal, not an established deployment standard.</p>
+<aside class="notes">RAND proposes verifiable audit trails to supply design history at synthesis and regulatory review. A sequence alone does not specify which objectives, input data or intermediate decisions produced it. The protocol combines structured records, signatures and public publication so that a downstream reviewer can examine evidence tied to the submitted sequence. This evidence supplements existing sequence screening. RAND presents a proposal, and the prototype here demonstrates selected mechanisms under local trust assumptions.</aside>
+</section>
+<section class="slide detail" aria-labelledby="rand-flow">
+<p class="eyebrow">RAND VAT / Protocol and demonstration</p><h2 id="rand-flow">RAND proposes four protocol phases</h2>
+<div class="flow"><div>1 · Record<small>Recorder captures events, inputs, objectives and outputs.</small></div><span>→</span><div>2 · Seal<small>Sign a commitment to the recorded history.</small></div><span>→</span><div>3 · Notarize<small>Validate policy; anchor an inclusion record publicly.</small></div><span>→</span><div>4 · Verify<small>Check the bundle alongside the submitted sequence.</small></div></div><div class="callout">Designer → recorder → notary → verifier<br><span class="compact">One organization may perform several roles, each with explicit trust assumptions.</span></div>
+<p class="foot">Source: <a href="https://www.rand.org/pubs/perspectives/PEA4613-1.html">Berke et al., RAND PE-A4613-1 (June 2026)</a>, chapter 3, protocol phases. Public anchoring is part of notarization.</p>
+<aside class="notes">The designer uses biological design tools while a recorder captures the relevant events and seals the resulting log. A notary validates the chain and attestation, applies applicable domain policy and submits an inclusion record to a public transparency log. The designer receives the signed bundle and submits it with the sequence. The downstream verifier checks that evidence before applying its review policy. One organization may perform multiple roles, provided the associated trust assumptions are explicit.</aside>
+</section>
+<section class="slide detail" aria-labelledby="rand-trust">
+<p class="eyebrow">RAND VAT / Protocol and demonstration</p><h2 id="rand-trust">Compare RAND’s proposal<br>with the prototype</h2>
+<table class="disclosure"><thead><tr><th>Layer</th><th>RAND proposal</th><th>This implementation</th></tr></thead><tbody><tr><td>Capture</td><td>Trust boundary around observation; hardware-rooted and weaker configurations.</td><td>Caller-side declared inputs/outputs; local keys. No hardware-attested capture.</td></tr><tr><td>Notary + publication</td><td>Policy validation and independently observable public anchoring.</td><td>Local role keys and simulated ledger. No sequence screen or independent clock.</td></tr><tr><td>Verification</td><td>Four ordered checks; completeness also a capture requirement.</td><td>Additional disclosure-completeness check and separate signed-lineage verification.</td></tr></tbody></table>
+<p class="foot">Sources: <a href="https://www.rand.org/pubs/perspectives/PEA4613-1.html">Berke et al., RAND PE-A4613-1 (June 2026)</a>, chapters 3–4. Assurance depends on capture and independent trust.</p>
+<aside class="notes">RAND’s assurance depends on the capture and trust arrangements. The strongest configuration places the tool and recorder together inside a trusted execution environment; monitoring and wrapper configurations provide weaker protection. The prototype records declared inputs and outputs on the caller’s side and uses locally controlled signing keys. Its simulated notary checks commitments but performs no sequence screening. The additional disclosure-completeness check and signed dependency references are project mechanisms. Unrecorded computations remain outside their guarantees.</aside>
+</section>
+<section class="slide detail" aria-labelledby="rand-checks">
+<p class="eyebrow">RAND VAT / Protocol and demonstration</p><h2 id="rand-checks">Check integrity before evaluating the design</h2>
+<ol class="checks"><li><b>01</b>Record integrity: is the hash chain consistent?</li><li><b>02</b>Trusted attestation: do signatures and recognized roles validate?</li><li><b>03</b>Public inclusion: is the commitment logged at a plausible time?</li><li><b>04</b>Output binding: does the submitted sequence match the record?</li><li><b>+1</b>Our extension: are all committed session records disclosed?</li></ol>
+<p class="foot">Source: <a href="https://www.rand.org/pubs/perspectives/PEA4613-1.html">Berke et al., RAND PE-A4613-1 (June 2026)</a>, chapter 3, phase 4.</p>
+<aside class="notes">RAND specifies four ordered questions: whether the chain is consistent, the attestation is trusted, the commitment is publicly included at a plausible time, and the submitted sequence matches the recorded output. The prototype adds a fifth check for disclosure of every committed session record. The examples use simulated local publication and role-bound keys. Successful verification establishes the configured evidence checks; the reviewer must still evaluate the design under the relevant scientific and institutional policies.</aside>
+</section>
+<section class="slide detail" aria-labelledby="rand-time">
+<p class="eyebrow">RAND VAT / Protocol and demonstration</p><h2 id="rand-time">Public observation constrains backdating</h2>
+<div class="flow"><div>Publish<small>A signed commitment enters the log.</small></div><span>→</span><div>Witness<small>Independent observers retain dated checkpoints.</small></div><span>→</span><div>Compare<small>Later history must extend the observed prefix.</small></div></div><div class="row"><div class="card"><h3>Constrain publication claims</h3><p>Publicly observed history constrains later claims about publication.</p></div><div class="card"><h3>Establish execution time separately</h3><p>Logging a commitment does not prove when the computation happened.</p></div></div>
+<p class="foot">Source: <a href="https://www.rand.org/pubs/perspectives/PEA4613-1.html">Berke et al., RAND PE-A4613-1 (June 2026)</a>, chapter 3, phase 3. The simulation supplies no independent timestamp.</p>
+<aside class="notes">RAND uses public transparency logging to make backdating detectable. Independently retained checkpoints constrain attempts to rewrite the publication history. Inclusion proves membership in a particular checkpoint; consistency proves that a later tree extends an observed prefix. Neither proof supplies a trustworthy wall clock or guarantees that observers have compared all views. Publication can occur after computation. The laptop demonstration supplies inclusion and consistency proofs but no independent evidence of publication or execution time.</aside>
+</section>
+<section class="slide detail" aria-labelledby="objectives">
+<p class="eyebrow">RAND VAT / Protocol and demonstration</p><h2 id="objectives">Interpret immune-recognition objectives in context</h2>
+<div class="row"><div class="card"><h3>What the example records</h3><p>Lower predicted immune presentation and antibody recognition.</p><p class="compact">These labels describe recorded objectives. They do not report measured biological effects.</p></div><div class="card"><h3>What it does not establish</h3><p>Those names alone prove neither harmful intent nor successful biological effects.</p></div></div><div class="callout">Ask why these objectives fit this purpose.<br>Inspect methods, constraints and results; escalate if warranted.</div>
+<p class="foot">Synthetic review scenario, not a biological finding or an automated risk classification.</p>
+<aside class="notes">The example records minimization of MHC class II presentation and serum antibody recognition. These names describe objectives concerning immune recognition; they do not report measured biological effects. Such objectives can have legitimate therapeutic uses. A reviewer would examine why they were chosen, the methods used to evaluate them and the constraints applied to the design. The integrity result leaves that scientific and policy assessment unresolved.</aside>
+</section>
+<section class="slide detail" aria-labelledby="proof-tree">
+<p class="eyebrow">RAND VAT / Protocol and demonstration</p><h2 id="proof-tree">Reconstruct the root from one record and its proof</h2>
+<svg class="teaching" viewBox="0 0 1080 290" role="img" aria-label="Four-leaf example. Record B and sibling hashes A and CD reconstruct AB and then the signed root."><g stroke="#51646a" stroke-width="3" fill="none"><path d="M540 55L280 140M540 55L800 140M280 140L140 240M280 140L420 240M800 140L680 240M800 140L940 240"/></g><g fill="#d4e9df" stroke="#176653"><rect x="440" y="15" width="200" height="60" rx="6"/><rect x="180" y="110" width="200" height="60" rx="6"/><rect x="330" y="210" width="180" height="60" rx="6"/></g><g fill="#fff0dc" stroke="#b84825"><rect x="700" y="110" width="200" height="60" rx="6"/><rect x="50" y="210" width="180" height="60" rx="6"/></g><g fill="#f5f1e9" stroke="#c9d0ca"><rect x="590" y="210" width="180" height="60" rx="6"/><rect x="850" y="210" width="180" height="60" rx="6"/></g><g text-anchor="middle" fill="#182e39" font-size="23"><text x="540" y="53">Signed root</text><text x="280" y="148">Compute H(AB)</text><text x="800" y="148">Proof: H(CD)</text><text x="140" y="248">Proof: H(A)</text><text x="420" y="248">Hash record B</text><text x="680" y="248">Hidden C</text><text x="940" y="248">Hidden D</text></g></svg><p class="lead">Record B and two sibling hashes reconstruct the root.<br>Records A, C and D remain undisclosed.</p>
+<p class="foot">Illustrative four-record tree. A membership proof does not reveal every record committed by the root.</p>
+<aside class="notes">In this illustrative four-record tree, the verifier hashes record B, combines it with the supplied hash of A, then combines the resulting AB hash with the supplied CD subtree hash. The result must match the authenticated root, with the correct position, size and proof shape. Records A, C and D remain undisclosed. Their sibling hashes suffice to verify B’s membership but provide no basis for inspecting those records.</aside>
+</section>
+<section class="slide detail" aria-labelledby="provenance-graph">
+<p class="eyebrow">RAND VAT / Protocol and demonstration</p><h2 id="provenance-graph">Identify the producer of each consumed output</h2>
+<div class="flow"><div>Node A<small>double(3)<br>Signed result: 6</small></div><span>→</span><div>Explicit reference<small>A’s identity + output selector<br>Recorded as B’s input binding</small></div><span>→</span><div>Node B<small>double(A.ref())<br>Signed result: 12</small></div></div><div class="row"><div class="card"><h3>Passing A.ref()</h3><p>The recorded edge identifies the producer output consumed.</p></div><div class="card"><h3>Passing the number 6</h3><p>The value alone does not identify its source. Do not invent an edge.</p></div></div>
+<p class="foot">An explicit dependency identifies the particular producer output consumed by a later computation.</p>
+<aside class="notes">The first computation doubles three and returns six. The second consumes an explicit reference to that output and returns twelve. The recorded edge identifies the output occurrence used by the second computation. Passing the number six without a reference would leave its source unspecified. Dependency verification, statement signatures, session membership and disclosure completeness are separate checks; a missing producer can leave the dependency unresolved.</aside>
+</section>
+<section class="slide detail" aria-labelledby="pilot">
+<p class="eyebrow">RAND VAT / Protocol and demonstration</p><h2 id="pilot">Define a voluntary synthesis-review pilot</h2>
+<div class="row three"><div class="card"><h3>Partner</h3><p>A willing synthesis provider and a defined research cohort.</p></div><div class="card"><h3>Agree</h3><p>Disclosure, trusted operators, retention, review policy and appeals.</p></div><div class="card dark"><h3>Measure</h3><p>Evidence usefulness, review time, false flags and researcher burden.</p></div></div><div class="callout">Proposed evaluation: compare review accuracy, review time and researcher burden with and without audit records.</div>
+<p class="foot">Proposal basis: <a href="https://www.rand.org/pubs/perspectives/PEA4613-1.html">Berke et al., RAND PE-A4613-1 (June 2026)</a>, chapter 5. No RAND affiliation or endorsement implied.</p>
+<aside class="notes">RAND recommends evaluating voluntary audit-trail submission with willing synthesis providers and research institutions. Before collecting submissions, participants would agree on required evidence, capture tiers, operator responsibilities, confidential handling, retention and escalation procedures. The pilot would measure whether reviewers identify discrepancies more accurately, how long review takes and what burden recording imposes on researchers. No partner commitment or deployed pilot is claimed here.</aside>
+</section>
+</main>
+<nav id="controls" aria-label="Slide controls"><button id="prev" aria-label="Previous slide">←</button><output id="count" aria-live="polite"></output><button id="next" aria-label="Next slide">→</button><button id="notes" aria-expanded="false" aria-controls="notes-panel">Notes · N</button><button id="print">PDF / Print</button><button id="version"></button><span>← → / Space</span></nav>
+<aside id="notes-panel" aria-label="Speaker notes" hidden></aside>
+<script>
+const detailed = new URLSearchParams(location.search).get('version') === 'detailed';
+if (detailed) {
+  const order = ['s1', 'rand-gap', 'rand-flow', 'rand-trust', 's3', 'rand-checks', 's4', 's5', 's6', 'objectives', 's7', 'rand-time', 's9', 's10', 's13', 's14', 's15', 'proof-tree', 's16', 's17', 's18', 'provenance-graph', 's19', 's20', 's23', 's25', 's24', 's21', 's22', 'pilot'];
+  const sections = new Map([...document.querySelectorAll('.slide')].map(slide => [slide.getAttribute('aria-labelledby'), slide]));
+  document.querySelector('#stage').replaceChildren(...order.map(id => sections.get(id)));
+} else {
+  document.querySelectorAll('.detail').forEach(slide => slide.remove());
+}
+const slides = [...document.querySelectorAll('.slide')];
+document.title = `biodesign-vat: ${detailed ? 'Technical walkthrough' : 'Five-minute overview'}`;
+const versionButton = document.querySelector('#version');
+versionButton.textContent = detailed ? 'Switch to overview' : 'Switch to deep dive';
+versionButton.onclick = () => { location.href = location.pathname + (detailed ? '' : '?version=detailed') + '#1'; };
+const stage = document.querySelector('#stage');
+stage.classList.toggle('detailed', detailed);
+const panel = document.querySelector('#notes-panel');
+let current = 0;
+slides.forEach((slide, index) => {
+  const brand = document.createElement('span');
+  brand.className = 'brand'; brand.textContent = 'biodesign-vat / Verifiable audit trails';
+  const number = document.createElement('span');
+  number.className = 'page'; number.textContent = `${String(index + 1).padStart(2, '0')} / ${slides.length}`;
+  slide.append(brand, number);
+});
+function fit() {
+  const scale = Math.max(0.1, Math.min(innerWidth / 1280, (innerHeight - 62) / 720));
+  stage.style.transform = `scale(${scale})`;
+  stage.style.marginLeft = `${Math.max(0, (innerWidth - 1280 * scale) / 2)}px`;
+  document.body.style.height = `${720 * scale}px`;
+  document.body.style.overflow = 'hidden';
+}
+function show(index) {
+  current = Math.max(0, Math.min(slides.length - 1, index));
+  slides.forEach((slide, i) => {
+    slide.classList.toggle('active', i === current);
+    slide.setAttribute('aria-hidden', String(i !== current));
+  });
+  document.querySelector('#count').textContent = `${current + 1} / ${slides.length}`;
+  document.querySelector('#prev').disabled = current === 0;
+  document.querySelector('#next').disabled = current === slides.length - 1;
+  panel.textContent = slides[current].querySelector('.notes').textContent;
+  history.replaceState(null, '', `#${current + 1}`);
+}
+function toggleNotes() {
+  panel.hidden = !panel.hidden;
+  document.querySelector('#notes').setAttribute('aria-expanded', String(!panel.hidden));
+}
+document.querySelector('#prev').onclick = () => show(current - 1);
+document.querySelector('#next').onclick = () => show(current + 1);
+document.querySelector('#notes').onclick = toggleNotes;
+document.querySelector('#print').onclick = () => window.print();
+addEventListener('keydown', event => {
+  const target = event.target instanceof Element ? event.target : null;
+  if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
+  if (event.key === ' ' && target?.closest('button, a')) return;
+  if (['ArrowRight', 'PageDown', ' '].includes(event.key)) { event.preventDefault(); show(current + 1); }
+  if (['ArrowLeft', 'PageUp'].includes(event.key)) { event.preventDefault(); show(current - 1); }
+  if (event.key === 'Home') { event.preventDefault(); show(0); }
+  if (event.key === 'End') { event.preventDefault(); show(slides.length - 1); }
+  if (event.key.toLowerCase() === 'n') toggleNotes();
+  if (event.key === 'Escape' && !panel.hidden) toggleNotes();
+});
+addEventListener('resize', fit);
+addEventListener('hashchange', () => { const page = Number(location.hash.slice(1)); show(Number.isInteger(page) && page > 0 ? page - 1 : 0); });
+const initialPage = Number(location.hash.slice(1));
+show(Number.isInteger(initialPage) && initialPage > 0 ? initialPage - 1 : 0);
+fit();
+</script>
+</body>
+</html>

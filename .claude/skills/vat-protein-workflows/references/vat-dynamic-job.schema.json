@@ -1,0 +1,135 @@
+{
+  "$defs": {
+    "DynamicResources": {
+      "additionalProperties": false,
+      "properties": {
+        "cpu": {
+          "const": 1,
+          "default": 1,
+          "title": "Cpu",
+          "type": "integer"
+        },
+        "gpu": {
+          "default": null,
+          "title": "Gpu",
+          "type": "null"
+        },
+        "memory_mb": {
+          "default": 512,
+          "maximum": 2048,
+          "minimum": 128,
+          "title": "Memory Mb",
+          "type": "integer"
+        },
+        "network": {
+          "const": false,
+          "default": false,
+          "title": "Network",
+          "type": "boolean"
+        },
+        "secrets": {
+          "const": false,
+          "default": false,
+          "title": "Secrets",
+          "type": "boolean"
+        },
+        "timeout_seconds": {
+          "default": 300,
+          "maximum": 300,
+          "minimum": 1,
+          "title": "Timeout Seconds",
+          "type": "integer"
+        },
+        "volumes": {
+          "const": false,
+          "default": false,
+          "title": "Volumes",
+          "type": "boolean"
+        }
+      },
+      "title": "DynamicResources",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "authorized": {
+      "default": false,
+      "title": "Authorized",
+      "type": "boolean"
+    },
+    "entrypoint": {
+      "title": "Entrypoint",
+      "type": "string"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "input": {
+      "title": "Input"
+    },
+    "input_schema": {
+      "additionalProperties": true,
+      "title": "Input Schema",
+      "type": "object"
+    },
+    "label": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Label",
+      "type": "string"
+    },
+    "output_version": {
+      "const": "vat-dynamic-output/1",
+      "default": "vat-dynamic-output/1",
+      "title": "Output Version",
+      "type": "string"
+    },
+    "packages": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 16,
+      "title": "Packages",
+      "type": "array"
+    },
+    "public_input": {
+      "const": true,
+      "default": true,
+      "title": "Public Input",
+      "type": "boolean"
+    },
+    "purpose": {
+      "maxLength": 2048,
+      "minLength": 1,
+      "title": "Purpose",
+      "type": "string"
+    },
+    "resources": {
+      "$ref": "#/$defs/DynamicResources"
+    },
+    "source": {
+      "minLength": 1,
+      "title": "Source",
+      "type": "string"
+    },
+    "version": {
+      "const": "vat-dynamic-job/1",
+      "default": "vat-dynamic-job/1",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "label",
+    "purpose",
+    "source",
+    "entrypoint",
+    "input_schema",
+    "input"
+  ],
+  "title": "DynamicProposal",
+  "type": "object"
+}

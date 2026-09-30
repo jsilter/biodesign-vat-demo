@@ -1,0 +1,181 @@
+{
+  "$defs": {
+    "OutputSelector": {
+      "additionalProperties": false,
+      "properties": {
+        "classification": {
+          "default": "output",
+          "enum": [
+            "output",
+            "intermediate"
+          ],
+          "title": "Classification",
+          "type": "string"
+        },
+        "encoding": {
+          "default": "identity",
+          "enum": [
+            "identity",
+            "utf-8"
+          ],
+          "title": "Encoding",
+          "type": "string"
+        },
+        "kind": {
+          "default": "return",
+          "enum": [
+            "return",
+            "artifact"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "pointer": {
+          "default": "",
+          "title": "Pointer",
+          "type": "string"
+        }
+      },
+      "title": "OutputSelector",
+      "type": "object"
+    },
+    "WorkflowBinding": {
+      "additionalProperties": false,
+      "description": "Replace one request value with an exact output from an earlier node.",
+      "properties": {
+        "allow_intermediate": {
+          "default": false,
+          "title": "Allow Intermediate",
+          "type": "boolean"
+        },
+        "destination": {
+          "title": "Destination",
+          "type": "string"
+        },
+        "producer": {
+          "title": "Producer",
+          "type": "string"
+        },
+        "selector": {
+          "$ref": "#/$defs/OutputSelector"
+        }
+      },
+      "required": [
+        "destination",
+        "producer",
+        "selector"
+      ],
+      "title": "WorkflowBinding",
+      "type": "object"
+    },
+    "WorkflowNode": {
+      "additionalProperties": false,
+      "description": "One immutable registered-tool invocation in a proposed workflow.",
+      "properties": {
+        "authorized": {
+          "default": false,
+          "title": "Authorized",
+          "type": "boolean"
+        },
+        "bindings": {
+          "items": {
+            "$ref": "#/$defs/WorkflowBinding"
+          },
+          "maxItems": 256,
+          "title": "Bindings",
+          "type": "array"
+        },
+        "controls": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Controls",
+          "type": "array"
+        },
+        "execution_id": {
+          "title": "Execution Id",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "request": {
+          "additionalProperties": true,
+          "title": "Request",
+          "type": "object"
+        },
+        "tool_id": {
+          "title": "Tool Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "tool_id",
+        "execution_id",
+        "request"
+      ],
+      "title": "WorkflowNode",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Canonical, side-effect-free workflow proposal reviewed as a whole.",
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "label": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Label",
+      "type": "string"
+    },
+    "nodes": {
+      "items": {
+        "$ref": "#/$defs/WorkflowNode"
+      },
+      "maxItems": 32,
+      "minItems": 1,
+      "title": "Nodes",
+      "type": "array"
+    },
+    "purpose": {
+      "maxLength": 2048,
+      "minLength": 1,
+      "title": "Purpose",
+      "type": "string"
+    },
+    "version": {
+      "const": "vat-workflow/1",
+      "default": "vat-workflow/1",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "label",
+    "purpose",
+    "nodes"
+  ],
+  "title": "WorkflowProposal",
+  "type": "object"
+}

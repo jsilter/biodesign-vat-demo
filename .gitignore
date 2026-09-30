@@ -1,0 +1,63 @@
+# NOTE: RAND PE-A4613-1 carries "Limited Print and Electronic Distribution Rights":
+# reposting the publication is prohibited, linking to its page is encouraged. Keep local
+# copies in the ignored papers/ directory; reference/rand-vat-spec-extract.md cites it.
+
+# Documents
+*.pdf
+
+__pycache__/
+*.pyc
+.venv/
+.claude-science-python/
+.claude-science-venv/
+.env
+/web/node_modules/
+/web/dist/
+/web/dist-static/
+/web/public/demo/
+/.rodney/
+
+# conversion scratch (regenerate with the boox-format skill)
+build/
+
+# Local sequence corpora (not application fixtures)
+data/*.fasta
+
+# setuptools build metadata
+*.egg-info/
+
+# scratch docs
+.claude/napkin.md
+
+# Legacy rendered Mermaid scratch output
+/diagram-*.svg
+
+# Local copies of the Anthropic prompt release; reference/protein_binder_protocol/README.md
+# cites and links it. Fetch from
+# https://huggingface.co/datasets/Anthropic/claude-protein-binder-design
+reference/protein_binder_protocol/UPSTREAM_README.md
+reference/protein_binder_protocol/multi_target_binder_design_prompt.md
+reference/protein_binder_protocol/MANIFEST.sha256
+reference/protein_binder_protocol/REDISTRIBUTION_NOTES.csv
+reference/protein_binder_protocol/kickoff/
+reference/protein_binder_protocol/single_target/
+# Persistent local workflow artifacts and credentials never belong in git.
+.local/
+/.vat/
+
+# Local backend coverage reports
+.coverage
+.coverage.*
+/htmlcov/
+/coverage.json
+/coverage.xml
+
+# Private key material never belongs in git; test certificates use .crt
+*.pem
+*.key
+
+# Third-party papers and supplementary data; fixtures/ pins what the demos use by digest.
+/papers/
+
+# Recorder state and role keys under any results directory
+results/**/private/
